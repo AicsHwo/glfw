@@ -658,6 +658,7 @@ INPUT                  = @GLFW_INTERNAL_DOCS@                         \
                          @GLFW_SOURCE_DIR@/docs/main.dox              \
                          @GLFW_SOURCE_DIR@/docs/news.dox              \
                          @GLFW_SOURCE_DIR@/docs/moving.dox            \
+                         @GLFW_SOURCE_DIR@/docs/fromglut.dox          \
                          @GLFW_SOURCE_DIR@/docs/quick.dox             \
                          @GLFW_SOURCE_DIR@/docs/compile.dox           \
                          @GLFW_SOURCE_DIR@/docs/build.dox             \
