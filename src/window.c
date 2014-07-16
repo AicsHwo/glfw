@@ -158,6 +158,7 @@ GLFWAPI GLFWwindow* glfwCreateWindow(int width, int height,
     fbconfig.samples        = _glfw.hints.samples;
     fbconfig.sRGB           = _glfw.hints.sRGB;
     fbconfig.doublebuffer   = _glfw.hints.doublebuffer ? GL_TRUE : GL_FALSE;
+    fbconfig.alphaMask      = _glfw.hints.alphaMask ? GL_TRUE : GL_FALSE;
 
     // Set up desired window config
     wndconfig.width         = width;
@@ -169,6 +170,7 @@ GLFWAPI GLFWwindow* glfwCreateWindow(int width, int height,
     wndconfig.autoIconify   = _glfw.hints.autoIconify ? GL_TRUE : GL_FALSE;
     wndconfig.floating      = _glfw.hints.floating ? GL_TRUE : GL_FALSE;
     wndconfig.monitor       = (_GLFWmonitor*) monitor;
+    wndconfig.alphaMask     = _glfw.hints.alphaMask ? GL_TRUE : GL_FALSE;
 
     // Set up desired context config
     ctxconfig.api           = _glfw.hints.api;
@@ -283,7 +285,7 @@ void glfwDefaultWindowHints(void)
     _glfw.hints.autoIconify = GL_TRUE;
 
     // The default is 24 bits of color, 24 bits of depth and 8 bits of stencil,
-    // double buffered
+    // double buffered, no alpha mask
     _glfw.hints.redBits      = 8;
     _glfw.hints.greenBits    = 8;
     _glfw.hints.blueBits     = 8;
@@ -291,6 +293,7 @@ void glfwDefaultWindowHints(void)
     _glfw.hints.depthBits    = 24;
     _glfw.hints.stencilBits  = 8;
     _glfw.hints.doublebuffer = GL_TRUE;
+    _glfw.hints.alphaMask    = GL_FALSE;
 }
 
 GLFWAPI void glfwWindowHint(int target, int hint)
@@ -340,6 +343,9 @@ GLFWAPI void glfwWindowHint(int target, int hint)
             break;
         case GLFW_DOUBLEBUFFER:
             _glfw.hints.doublebuffer = hint;
+            break;
+        case GLFW_ALPHA_MASK:
+            _glfw.hints.alphaMask = hint;
             break;
         case GLFW_RESIZABLE:
             _glfw.hints.resizable = hint;

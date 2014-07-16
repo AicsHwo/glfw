@@ -227,6 +227,12 @@ int _glfwCreateContext(_GLFWwindow* window,
         return GL_FALSE;
     }
 
+    if (fbconfig->alphaMask)
+    {
+        GLint opaque = 0;
+        [window->nsgl.context setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
+    }
+
     return GL_TRUE;
 }
 
