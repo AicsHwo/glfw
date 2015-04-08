@@ -168,6 +168,7 @@ struct _GLFWwndconfig
     GLboolean     focused;
     GLboolean     autoIconify;
     GLboolean     floating;
+    GLboolean     alphaMask;
     _GLFWmonitor* monitor;
 };
 
@@ -217,6 +218,7 @@ struct _GLFWfbconfig
     int         samples;
     int         sRGB;
     int         doublebuffer;
+    int         alphaMask;
 
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_FBCONFIG;
@@ -345,6 +347,7 @@ struct _GLFWlibrary
         int         sRGB;
         int         refreshRate;
         int         doublebuffer;
+        int         alphaMask;
         int         api;
         int         major;
         int         minor;
