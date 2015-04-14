@@ -641,6 +641,9 @@ static int createWindow(_GLFWwindow* window,
     window->win32.dwStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     window->win32.dwExStyle = WS_EX_APPWINDOW;
 
+    if (window->transparent)
+        window->win32.dwExStyle |= WS_EX_LAYERED;
+
     if (window->monitor)
     {
         window->win32.dwStyle |= WS_POPUP;

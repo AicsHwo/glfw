@@ -237,6 +237,7 @@ struct _GLFWwindow
     GLboolean           autoIconify;
     GLboolean           floating;
     GLboolean           closed;
+    GLboolean           transparent;
     void*               userPointer;
     GLFWvidmode         videoMode;
     _GLFWmonitor*       monitor;

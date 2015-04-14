@@ -29,6 +29,7 @@ if (APPLE)
     add_executable(Heightmap MACOSX_BUNDLE heightmap.c ${GLAD})
     add_executable(Particles MACOSX_BUNDLE particles.c ${TINYCTHREAD})
     add_executable(Simple MACOSX_BUNDLE simple.c)
+    add_executable(Transparent MACOSX_BUNDLE transparent.c)
     add_executable(SplitView MACOSX_BUNDLE splitview.c)
     add_executable(Wave MACOSX_BUNDLE wave.c)
 
@@ -51,10 +52,11 @@ else()
     add_executable(heightmap WIN32 heightmap.c ${GLAD})
     add_executable(particles WIN32 particles.c ${TINYCTHREAD} ${GETOPT})
     add_executable(simple WIN32 simple.c)
+    add_executable(transparent WIN32 transparent.c)
     add_executable(splitview WIN32 splitview.c)
     add_executable(wave WIN32 wave.c)
 
-    set_target_properties(boing gears heightmap particles simple splitview wave PROPERTIES
+    set_target_properties(boing gears heightmap particles simple transparent splitview wave PROPERTIES
                           FOLDER "GLFW3/Examples")
 endif()
 
@@ -65,7 +67,7 @@ elseif (UNIX)
 endif()
 
 if (MSVC)
-    set(WINDOWS_BINARIES boing gears heightmap particles simple splitview wave)
+    set(WINDOWS_BINARIES boing gears heightmap particles simple transparent splitview wave)
 
     # Tell MSVC to use main instead of WinMain for Windows subsystem executables
     set_target_properties(${WINDOWS_BINARIES} PROPERTIES
