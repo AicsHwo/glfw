@@ -636,8 +636,6 @@ void _glfwPlatformMakeContextCurrent(_GLFWwindow* window)
 
 void _glfwPlatformSwapBuffers(_GLFWwindow* window)
 {
-    SwapBuffers(window->wgl.dc);
-
     if (window->transparent)
     {
         HBITMAP hBitmap    = 0;
@@ -653,8 +651,7 @@ void _glfwPlatformSwapBuffers(_GLFWwindow* window)
 
         bmpInfo.bmiHeader.biBitCount = 32;
         bmpInfo.bmiHeader.biWidth    = window_w;
-        bmpInfo.bmiHeader.biHeight   = -window_h;
-        bmpInfo.bmiHeader.biBitCount = 32;
+        bmpInfo.bmiHeader.biHeight   = window_h;
         bmpInfo.bmiHeader.biPlanes   = 1;
         bmpInfo.bmiHeader.biSize     = sizeof(BITMAPINFOHEADER);
         bmpInfo.bmiHeader.biCompression = BI_RGB;
@@ -665,7 +662,7 @@ void _glfwPlatformSwapBuffers(_GLFWwindow* window)
             return;
         }
 
-        glReadPixels( 0, 0, window_w, window_h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        glReadPixels( 0, 0, window_w, window_h, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
 
         hPrevObj = SelectObject(window->wgl.dcTransparent, hBitmap);
         UpdateLayeredWindow(window->win32.handle, NULL, NULL, &client,
@@ -674,6 +671,8 @@ void _glfwPlatformSwapBuffers(_GLFWwindow* window)
         SelectObject(window->wgl.dcTransparent, hPrevObj);
         DeleteObject(hBitmap);
     }
+
+    SwapBuffers(window->wgl.dc);
 
 }
 
@@ -743,4 +742,3 @@ GLFWAPI HGLRC glfwGetWGLContext(GLFWwindow* handle)
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
     return window->wgl.context;
 }
-
