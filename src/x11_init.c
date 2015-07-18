@@ -459,8 +459,6 @@ static void detectEWMH(void)
         getSupportedAtom(supportedAtoms, atomCount, "_NET_WM_BYPASS_COMPOSITOR");
 
     XFree(supportedAtoms);
-
-    _glfw.x11.hasEWMH = GL_TRUE;
 }
 
 // Initialize X11 display and look for supported X11 extensions
@@ -498,8 +496,8 @@ static GLboolean initExtensions(void)
         XRRScreenResources* sr;
 
         if (!XRRQueryVersion(_glfw.x11.display,
-                             &_glfw.x11.randr.versionMajor,
-                             &_glfw.x11.randr.versionMinor))
+                             &_glfw.x11.randr.major,
+                             &_glfw.x11.randr.minor))
         {
             _glfwInputError(GLFW_PLATFORM_ERROR,
                             "X11: Failed to query RandR version");
@@ -507,11 +505,8 @@ static GLboolean initExtensions(void)
         }
 
         // The GLFW RandR path requires at least version 1.3
-        if (_glfw.x11.randr.versionMajor == 1 &&
-            _glfw.x11.randr.versionMinor < 3)
-        {
+        if (_glfw.x11.randr.major == 1 && _glfw.x11.randr.minor < 3)
             _glfw.x11.randr.available = GL_FALSE;
-        }
 
         sr = XRRGetScreenResources(_glfw.x11.display, _glfw.x11.root);
 
@@ -530,8 +525,8 @@ static GLboolean initExtensions(void)
     }
 
     if (XineramaQueryExtension(_glfw.x11.display,
-                               &_glfw.x11.xinerama.versionMajor,
-                               &_glfw.x11.xinerama.versionMinor))
+                               &_glfw.x11.xinerama.major,
+                               &_glfw.x11.xinerama.minor))
     {
         if (XineramaIsActive(_glfw.x11.display))
             _glfw.x11.xinerama.available = GL_TRUE;
@@ -544,12 +539,12 @@ static GLboolean initExtensions(void)
                         &_glfw.x11.xi.eventBase,
                         &_glfw.x11.xi.errorBase))
     {
-        _glfw.x11.xi.versionMajor = 2;
-        _glfw.x11.xi.versionMinor = 0;
+        _glfw.x11.xi.major = 2;
+        _glfw.x11.xi.minor = 0;
 
         if (XIQueryVersion(_glfw.x11.display,
-                           &_glfw.x11.xi.versionMajor,
-                           &_glfw.x11.xi.versionMinor) != BadRequest)
+                           &_glfw.x11.xi.major,
+                           &_glfw.x11.xi.minor) != BadRequest)
         {
             _glfw.x11.xi.available = GL_TRUE;
         }
@@ -557,15 +552,15 @@ static GLboolean initExtensions(void)
 #endif /*_GLFW_HAS_XINPUT*/
 
     // Check if Xkb is supported on this display
-    _glfw.x11.xkb.versionMajor = 1;
-    _glfw.x11.xkb.versionMinor = 0;
+    _glfw.x11.xkb.major = 1;
+    _glfw.x11.xkb.minor = 0;
     _glfw.x11.xkb.available =
         XkbQueryExtension(_glfw.x11.display,
                           &_glfw.x11.xkb.majorOpcode,
                           &_glfw.x11.xkb.eventBase,
                           &_glfw.x11.xkb.errorBase,
-                          &_glfw.x11.xkb.versionMajor,
-                          &_glfw.x11.xkb.versionMinor);
+                          &_glfw.x11.xkb.major,
+                          &_glfw.x11.xkb.minor);
 
     if (_glfw.x11.xkb.available)
     {
@@ -724,7 +719,18 @@ int _glfwPlatformInit(void)
     _glfw.x11.display = XOpenDisplay(NULL);
     if (!_glfw.x11.display)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "X11: Failed to open X display");
+        const char* display = getenv("DISPLAY");
+        if (display)
+        {
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "X11: Failed to open display %s", display);
+        }
+        else
+        {
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "X11: The DISPLAY environment variable is missing");
+        }
+
         return GL_FALSE;
     }
 
@@ -741,7 +747,7 @@ int _glfwPlatformInit(void)
     {
         XSetLocaleModifiers("");
 
-        _glfw.x11.im = XOpenIM(_glfw.x11.display, 0, 0, 0);
+        _glfw.x11.im = XOpenIM(_glfw.x11.display, 0, NULL, NULL);
         if (_glfw.x11.im)
         {
             if (!hasUsableInputMethodStyle())
@@ -791,23 +797,16 @@ void _glfwPlatformTerminate(void)
 
 const char* _glfwPlatformGetVersionString(void)
 {
-    const char* version = _GLFW_VERSION_NUMBER " X11"
+    return _GLFW_VERSION_NUMBER " X11"
 #if defined(_GLFW_GLX)
         " GLX"
 #elif defined(_GLFW_EGL)
         " EGL"
 #endif
-#if defined(_GLFW_HAS_GLXGETPROCADDRESS)
-        " glXGetProcAddress"
-#elif defined(_GLFW_HAS_GLXGETPROCADDRESSARB)
-        " glXGetProcAddressARB"
-#elif defined(_GLFW_HAS_GLXGETPROCADDRESSEXT)
-        " glXGetProcAddressEXT"
-#elif defined(_GLFW_DLOPEN_LIBGL)
-        " dlsym(libGL)"
-#endif
 #if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
         " clock_gettime"
+#else
+        " gettimeofday"
 #endif
 #if defined(__linux__)
         " /dev/js"
@@ -816,7 +815,5 @@ const char* _glfwPlatformGetVersionString(void)
         " shared"
 #endif
         ;
-
-    return version;
 }
 

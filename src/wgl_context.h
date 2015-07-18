@@ -25,8 +25,8 @@
 //
 //========================================================================
 
-#ifndef _wgl_context_h_
-#define _wgl_context_h_
+#ifndef _glfw3_wgl_context_h_
+#define _glfw3_wgl_context_h_
 
 // This path may need to be changed if you build GLFW using your own setup
 // We ship and use our own copy of wglext.h since GLFW uses fairly new
@@ -45,6 +45,7 @@ typedef struct _GLFWcontextWGL
     HDC       dc;              // Private GDI device context
     HGLRC     context;         // Permanent rendering context
     HDC       dcTransparent;   // Device context for drawing transparent windows
+    int       interval;
 
     // WGL extensions (context specific)
     PFNWGLSWAPINTERVALEXTPROC           SwapIntervalEXT;
@@ -55,6 +56,7 @@ typedef struct _GLFWcontextWGL
     GLboolean                           EXT_swap_control;
     GLboolean                           ARB_multisample;
     GLboolean                           ARB_framebuffer_sRGB;
+    GLboolean                           EXT_framebuffer_sRGB;
     GLboolean                           ARB_pixel_format;
     GLboolean                           ARB_create_context;
     GLboolean                           ARB_create_context_profile;
@@ -87,4 +89,4 @@ int _glfwAnalyzeContext(const _GLFWwindow* window,
                         const _GLFWctxconfig* ctxconfig,
                         const _GLFWfbconfig* fbconfig);
 
-#endif // _wgl_context_h_
+#endif // _glfw3_wgl_context_h_

@@ -62,6 +62,32 @@ GLFW bundles a number of dependencies in the `deps/` directory.
 
 ## Changelog
 
+ - Changed minimum required CMake version to 2.8.12
+ - Bugfix: Initialization failed on headless systems
+ - Bugfix: The cached current context could get out of sync
+ - [Win32] Renamed hybrid GPU override compile-time option to
+           `_GLFW_USE_HYBRID_HPG` and added support for AMD PowerXpress systems
+ - [Win32] Bugfix: `glfwGetVideoModes` included unusable modes on some systems
+ - [Cocoa] Bugfix: The cached `NSScreen` for a monitor could get out of sync
+ - [Cocoa] Bugfix: The `GLFW_AUTO_ICONIFY` window hint was ignored
+ - [Cocoa] Bugfix: Resizing a window to its minimum size would segfault
+ - [Cocoa] Bugfix: Creating or showing a window would make its context current
+ - [Cocoa] Bugfix: Joysticks connected after `glfwInit` were not detected
+ - [X11] Bugfix: `glfwInit` would segfault on systems without RandR
+ - [X11] Bugfix: The response to `_NET_WM_PING` was sent to the wrong window
+ - [X11] Bugfix: Character input via XIM did not work in many cases
+ - [X11] Bugfix: No fallback existed for missing `_NET_ACTIVE_WINDOW` support
+ - [X11] Bugfix: Some significant window focus events were ignored
+ - [X11] Bugfix: The `GLFW_AUTO_ICONIFY` window hint was ignored
+ - [X11] Bugfix: The original video mode was not restored on iconification of
+                 full screen windows
+ - [X11] Bugfix: `GLFW_ARROW_CURSOR` selected the wrong cursor image
+ - [WGL] Removed `GLFW_USE_DWM_SWAP_INTERVAL` compile-time option
+ - [WGL] Bugfix: Swap interval was ignored when DWM was enabled
+ - [GLX] Added dependency on `libdl` on systems where it provides `dlopen`
+ - [GLX] Removed `_GLFW_HAS_GLXGETPROCADDRESS*` and `_GLFW_HAS_DLOPEN`
+         compile-time options
+
 
 ## Contact
 
@@ -78,9 +104,7 @@ request, please file it in the
 [issue tracker](https://github.com/glfw/glfw/issues) on GitHub.
 
 Finally, if you're interested in helping out with the development of GLFW or
-porting it to your favorite platform, we have an occasionally active
-[developer's mailing list](https://lists.stacken.kth.se/mailman/listinfo/glfw-dev),
-or you could join us on `#glfw`.
+porting it to your favorite platform, join us on GitHub or IRC.
 
 
 ## Acknowledgements
@@ -99,6 +123,7 @@ skills.
  - Doug Binks
  - blanco
  - Martin Capitanio
+ - Chi-kwan Chan
  - Lambert Clara
  - Andrew Corrigan
  - Noel Cower
@@ -120,11 +145,13 @@ skills.
  - heromyth
  - Lucas Hinderberger
  - Paul Holden
+ - Aaron Jacobs
  - Toni Jovanoski
  - Arseny Kapoulkine
  - Osman Keskin
  - Cameron King
  - Peter Knut
+ - Eric Larson
  - Robin Leffmann
  - Glenn Lewis
  - Shane Liesegang
@@ -151,6 +178,7 @@ skills.
  - Peoro
  - Braden Pellett
  - Arturo J. Pérez
+ - Emmanuel Gil Peyrot
  - Cyril Pichard
  - Pieroman
  - Jorge Rodriguez
@@ -169,6 +197,7 @@ skills.
  - Julian Squires
  - Johannes Stein
  - Justin Stoecker
+ - Elviss Strazdins
  - Nathan Sweet
  - TTK-Bandit
  - Sergey Tikhomirov

@@ -38,6 +38,40 @@
 #define _GLFW_WNDCLASSNAME L"GLFW30"
 
 
+// Returns the window style for the specified window
+//
+static DWORD getWindowStyle(const _GLFWwindow* window)
+{
+    DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+    if (window->decorated && !window->monitor)
+    {
+        style |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+        if (window->resizable)
+            style |= WS_MAXIMIZEBOX | WS_SIZEBOX;
+    }
+    else
+        style |= WS_POPUP;
+
+    return style;
+}
+
+// Returns the extended window style for the specified window
+//
+static DWORD getWindowExStyle(const _GLFWwindow* window)
+{
+    DWORD style = WS_EX_APPWINDOW;
+
+    if (window->decorated && !window->monitor)
+        style |= WS_EX_WINDOWEDGE;
+
+	if (window->transparent)
+		style |= WS_EX_LAYERED;
+
+    return style;
+}
+
 // Updates the cursor clip rect
 //
 static void updateClipRect(_GLFWwindow* window)
@@ -431,7 +465,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
             if (window->cursorMode == GLFW_CURSOR_DISABLED)
             {
-                if (_glfw.focusedWindow != window)
+                if (_glfw.cursorWindow != window)
                     break;
 
                 _glfwInputCursorMotion(window,
@@ -444,7 +478,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             window->win32.cursorPosX = x;
             window->win32.cursorPosY = y;
 
-            if (!window->win32.cursorInside)
+            if (!window->win32.cursorTracked)
             {
                 TRACKMOUSEEVENT tme;
                 ZeroMemory(&tme, sizeof(tme));
@@ -453,7 +487,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 tme.hwndTrack = window->win32.handle;
                 TrackMouseEvent(&tme);
 
-                window->win32.cursorInside = GL_TRUE;
+                window->win32.cursorTracked = GL_TRUE;
                 _glfwInputCursorEnter(window, GL_TRUE);
             }
 
@@ -462,7 +496,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_MOUSELEAVE:
         {
-            window->win32.cursorInside = GL_FALSE;
+            window->win32.cursorTracked = GL_FALSE;
             _glfwInputCursorEnter(window, GL_FALSE);
             return 0;
         }
@@ -483,7 +517,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SIZE:
         {
-            if (_glfw.focusedWindow == window)
+            if (_glfw.cursorWindow == window)
             {
                 if (window->cursorMode == GLFW_CURSOR_DISABLED)
                     updateClipRect(window);
@@ -508,7 +542,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_MOVE:
         {
-            if (_glfw.focusedWindow == window)
+            if (_glfw.cursorWindow == window)
             {
                 if (window->cursorMode == GLFW_CURSOR_DISABLED)
                     updateClipRect(window);
@@ -535,7 +569,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SETCURSOR:
         {
-            if (_glfw.focusedWindow == window && LOWORD(lParam) == HTCLIENT)
+            if (_glfw.cursorWindow == window && LOWORD(lParam) == HTCLIENT)
             {
                 if (window->cursorMode == GLFW_CURSOR_HIDDEN ||
                     window->cursorMode == GLFW_CURSOR_DISABLED)
@@ -560,20 +594,6 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 _glfwInputMonitorChange();
                 return TRUE;
             }
-            break;
-        }
-
-        case WM_DWMCOMPOSITIONCHANGED:
-        {
-            if (_glfwIsCompositionEnabled())
-            {
-                _GLFWwindow* previous = _glfwPlatformGetCurrentContext();
-                _glfwPlatformMakeContextCurrent(window);
-                _glfwPlatformSwapInterval(0);
-                _glfwPlatformMakeContextCurrent(previous);
-            }
-
-            // TODO: Restore vsync if compositing was disabled
             break;
         }
 
@@ -622,8 +642,8 @@ static void getFullWindowSize(_GLFWwindow* window,
                               int* fullWidth, int* fullHeight)
 {
     RECT rect = { 0, 0, clientWidth, clientHeight };
-    AdjustWindowRectEx(&rect, window->win32.dwStyle,
-                       FALSE, window->win32.dwExStyle);
+    AdjustWindowRectEx(&rect, getWindowStyle(window),
+                       FALSE, getWindowExStyle(window));
     *fullWidth = rect.right - rect.left;
     *fullHeight = rect.bottom - rect.top;
 }
@@ -638,38 +658,19 @@ static int createWindow(_GLFWwindow* window,
     int xpos, ypos, fullWidth, fullHeight;
     WCHAR* wideTitle;
 
-    window->win32.dwStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-    window->win32.dwExStyle = WS_EX_APPWINDOW;
-
-    if (window->transparent)
-        window->win32.dwExStyle |= WS_EX_LAYERED;
-
-    if (window->monitor)
-    {
-        window->win32.dwStyle |= WS_POPUP;
+    if (wndconfig->monitor)    {
+        GLFWvidmode mode;
 
         // NOTE: This window placement is temporary and approximate, as the
         //       correct position and size cannot be known until the monitor
         //       video mode has been set
         _glfwPlatformGetMonitorPos(wndconfig->monitor, &xpos, &ypos);
-        fullWidth  = wndconfig->width;
-        fullHeight = wndconfig->height;
+        _glfwPlatformGetVideoMode(wndconfig->monitor, &mode);
+        fullWidth  = mode.width;
+        fullHeight = mode.height;
     }
     else
     {
-        if (wndconfig->decorated)
-        {
-            window->win32.dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
-
-            if (wndconfig->resizable)
-            {
-                window->win32.dwStyle |= WS_MAXIMIZEBOX | WS_SIZEBOX;
-                window->win32.dwExStyle |= WS_EX_WINDOWEDGE;
-            }
-        }
-        else
-            window->win32.dwStyle |= WS_POPUP;
-
         xpos = CW_USEDEFAULT;
         ypos = CW_USEDEFAULT;
 
@@ -686,10 +687,10 @@ static int createWindow(_GLFWwindow* window,
         return GL_FALSE;
     }
 
-    window->win32.handle = CreateWindowExW(window->win32.dwExStyle,
+    window->win32.handle = CreateWindowExW(getWindowExStyle(window),
                                            _GLFW_WNDCLASSNAME,
                                            wideTitle,
-                                           window->win32.dwStyle,
+                                           getWindowStyle(window),
                                            xpos, ypos,
                                            fullWidth, fullHeight,
                                            NULL, // No parent window
@@ -887,8 +888,8 @@ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
 void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos)
 {
     RECT rect = { xpos, ypos, xpos, ypos };
-    AdjustWindowRectEx(&rect, window->win32.dwStyle,
-                       FALSE, window->win32.dwExStyle);
+    AdjustWindowRectEx(&rect, getWindowStyle(window),
+                       FALSE, getWindowExStyle(window));
     SetWindowPos(window->win32.handle, NULL, rect.left, rect.top, 0, 0,
                  SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
 }
@@ -933,8 +934,8 @@ void _glfwPlatformGetWindowFrameSize(_GLFWwindow* window,
 
     _glfwPlatformGetWindowSize(window, &width, &height);
     SetRect(&rect, 0, 0, width, height);
-    AdjustWindowRectEx(&rect, window->win32.dwStyle,
-                       FALSE, window->win32.dwExStyle);
+    AdjustWindowRectEx(&rect, getWindowStyle(window),
+                       FALSE, getWindowExStyle(window));
 
     if (left)
         *left = -rect.left;
@@ -1016,7 +1017,7 @@ void _glfwPlatformPollEvents(void)
         }
     }
 
-    window = _glfw.focusedWindow;
+    window = _glfw.cursorWindow;
     if (window)
     {
         // LSHIFT/RSHIFT fixup (keys tend to "stick" without this fix)
@@ -1195,9 +1196,9 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
     // the following condition is not met. That way it should be safe to destroy the
     // cursor after calling glfwSetCursor(window, NULL) on all windows using the cursor.
 
-    if (_glfw.focusedWindow == window &&
+    if (_glfw.cursorWindow == window &&
         window->cursorMode == GLFW_CURSOR_NORMAL &&
-        window->win32.cursorInside)
+        window->win32.cursorTracked)
     {
         if (cursor)
             SetCursor(cursor->win32.handle);

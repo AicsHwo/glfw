@@ -25,8 +25,8 @@
 //
 //========================================================================
 
-#ifndef _internal_h_
-#define _internal_h_
+#ifndef _glfw3_internal_h_
+#define _glfw3_internal_h_
 
 
 #if defined(_GLFW_USE_CONFIG_H)
@@ -168,7 +168,7 @@ struct _GLFWwndconfig
     GLboolean     focused;
     GLboolean     autoIconify;
     GLboolean     floating;
-    GLboolean     alphaMask;
+	GLboolean     alphaMask;
     _GLFWmonitor* monitor;
 };
 
@@ -218,7 +218,7 @@ struct _GLFWfbconfig
     int         samples;
     int         sRGB;
     int         doublebuffer;
-    int         alphaMask;
+	int         alphaMask;
 
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_FBCONFIG;
@@ -236,8 +236,8 @@ struct _GLFWwindow
     GLboolean           decorated;
     GLboolean           autoIconify;
     GLboolean           floating;
+	GLboolean           transparent;
     GLboolean           closed;
-    GLboolean           transparent;
     void*               userPointer;
     GLFWvidmode         videoMode;
     _GLFWmonitor*       monitor;
@@ -326,48 +326,21 @@ struct _GLFWcursor
 struct _GLFWlibrary
 {
     struct {
-        int         redBits;
-        int         greenBits;
-        int         blueBits;
-        int         alphaBits;
-        int         depthBits;
-        int         stencilBits;
-        int         accumRedBits;
-        int         accumGreenBits;
-        int         accumBlueBits;
-        int         accumAlphaBits;
-        int         auxBuffers;
-        int         stereo;
-        int         resizable;
-        int         visible;
-        int         decorated;
-        int         focused;
-        int         autoIconify;
-        int         floating;
-        int         samples;
-        int         sRGB;
-        int         refreshRate;
-        int         doublebuffer;
-        int         alphaMask;
-        int         api;
-        int         major;
-        int         minor;
-        int         forward;
-        int         debug;
-        int         profile;
-        int         robustness;
-        int         release;
+        _GLFWfbconfig   framebuffer;
+        _GLFWwndconfig  window;
+        _GLFWctxconfig  context;
+        int             refreshRate;
     } hints;
 
-    double          cursorPosX, cursorPosY;
+    double              cursorPosX, cursorPosY;
 
-    _GLFWcursor*    cursorListHead;
+    _GLFWcursor*        cursorListHead;
 
-    _GLFWwindow*    windowListHead;
-    _GLFWwindow*    focusedWindow;
+    _GLFWwindow*        windowListHead;
+    _GLFWwindow*        cursorWindow;
 
-    _GLFWmonitor**  monitors;
-    int             monitorCount;
+    _GLFWmonitor**      monitors;
+    int                 monitorCount;
 
     struct {
         GLFWmonitorfun  monitor;
@@ -898,4 +871,4 @@ void _glfwFreeMonitor(_GLFWmonitor* monitor);
   */
 void _glfwFreeMonitors(_GLFWmonitor** monitors, int count);
 
-#endif // _internal_h_
+#endif // _glfw3_internal_h_
